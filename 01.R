@@ -1,37 +1,37 @@
 library(stringi)
 
-### BAD SOLUTION: The right calibration values for string "eighthree"
-### is 83 and for "sevenine" is 79.  The examples do not cover such
-### cases.
+## NOTE: in part 2, the string "eighthree" should be converted to "83"
 
-####  part 2: same as part 1 (below), but some digits spelled out
+## This corner case isn't covered in the examples, and it breaks
+## approaches based on substitution.
 
-#input2 <- readLines("test2.01.txt")
-input2 <- readLines("input.01.txt")
+input <- readLines("test.01.txt")
+input <- readLines("test2.01.txt")
+input <- readLines("input.01.txt")
 
-nnums <- 1:9
-snums <- c("one","two","three","four","five", "six","seven","eight","nine")
+#########
+## part 1: find first & last digits in strings, concat & sum
 
-## have to apply subs from left to right within string...
-unspell <- function(x){
-    firsts <- stri_locate_first_fixed(x, snums)[,1]
-    if(any(!is.na(firsts))){
-        i <- which.min(firsts)
-        x <- sub(snums[i], nnums[i], x) |> unspell()
-    }
-    return(x)
+finder <- function(x, mode=c("first","last"), pats=0:9){
+    locs <- stri_locate(str=x, fixed=pats, mode=mode)[,"start"]
+    if(mode=="first"){return(pats[which.min(locs)])}
+    if(mode=="last" ){return(pats[which.max(locs)])}
 }
 
-input <- sapply(input2, unspell)
+firsts <-  sapply(input, finder, mode="first", pats=0:9)
+lasts  <-  sapply(input, finder, mode="last",  pats=0:9)
 
-## part 1: extract first and last digits, concat to 2-digit number & sum
+paste0(firsts, lasts) |> as.numeric() |> sum() |> print()
 
-#input <- readLines("test.01.txt")
-#input <- readLines("input.01.txt")
+############
+####  part 2: same as part 1, but some digits spelled out
 
-digits <- gsub("[a-zA-Z]","", input)
-first <- substr(digits, start=1,stop=1)
-last <-  substr(stri_reverse(digits), start=1,stop=1)
+nums <- c(1:9, 0:9)
+names(nums) <- c("one","two","three","four","five",
+                 "six","seven","eight","nine", 0:9)
 
-paste0(first, last) |> as.numeric() |> sum() |> print()
+firsts <-  sapply(input, finder, mode="first", pats=names(nums))
+lasts  <-  sapply(input, finder, mode="last",  pats=names(nums))
+
+paste0(nums[firsts], nums[lasts]) |> as.numeric() |> sum() |> print()
 
